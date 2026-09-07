@@ -1,0 +1,57 @@
+package com.udea.banco2025.service;
+
+import com.udea.banco2025.DTO.CustomerDTO;
+import com.udea.banco2025.entity.Customer;
+import com.udea.banco2025.mapper.CustomerMapper;
+import com.udea.banco2025.repository.CustomerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class CustomerService {
+
+    private final CustomerRepository customerRepository;
+    private final CustomerMapper customerMapper;
+
+    @Autowired
+    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper) {
+        this.customerRepository = customerRepository;
+        this.customerMapper = customerMapper;
+    }
+
+    public List<CustomerDTO> getAllCustomer() {
+        return customerRepository.findAll().stream()
+                .map(customerMapper::toDTO).toList();
+    }
+
+    public CustomerDTO getCustomerById(Long id) {
+        return customerRepository.findById(id).map(customerMapper::toDTO)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+    }
+
+    public CustomerDTO createCustomer(CustomerDTO customerDTO) {
+        Customer customer = customerMapper.toEntity(customerDTO);
+        return customerMapper.toDTO(customerRepository.save(customer));
+    }
+
+    // Opcional (entrega): actualizar la información de un cliente
+    public CustomerDTO updateCustomer(Long id, CustomerDTO customerDTO) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
+        customer.setFirstName(customerDTO.getFirstName());
+        customer.setLastName(customerDTO.getLastName());
+        customer.setAccountNumber(customerDTO.getAccountNumber());
+        customer.setBalance(customerDTO.getBalance());
+        return customerMapper.toDTO(customerRepository.save(customer));
+    }
+
+    // Opcional (entrega): borrar un cliente
+    public void deleteCustomer(Long id) {
+        if (!customerRepository.existsById(id)) {
+            throw new RuntimeException("Customer not found");
+        }
+        customerRepository.deleteById(id);
+    }
+}
